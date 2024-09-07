@@ -23,6 +23,7 @@ public sealed class ItemToggleSystem : EntitySystem
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly SharedItemSystem _item = default!;
 
     private EntityQuery<ItemToggleComponent> _query;
 
@@ -43,6 +44,9 @@ public sealed class ItemToggleSystem : EntitySystem
         SubscribeLocalEvent<ItemToggleHotComponent, IsHotEvent>(OnIsHotEvent);
 
         SubscribeLocalEvent<ItemToggleActiveSoundComponent, ItemToggledEvent>(UpdateActiveSound);
+
+        SubscribeLocalEvent<ItemTogglePrefixComponent, ComponentStartup>(OnStartupPrefix);
+        SubscribeLocalEvent<ItemTogglePrefixComponent, ItemToggledEvent>(OnUpdatePrefix);
     }
 
     private void OnStartup(Entity<ItemToggleComponent> ent, ref ComponentStartup args)
@@ -289,5 +293,19 @@ public sealed class ItemToggleSystem : EntitySystem
             if (stream?.Entity is {} entity)
                 comp.PlayingStream = entity;
         }
+    }
+
+    private void OnStartupPrefix(EntityUid uid, ItemTogglePrefixComponent comp, ref ComponentStartup args)
+    {
+        if (comp.DefaultPrefix != null) return;
+        if (!TryComp<ItemComponent>(uid, out var item)) return;
+
+        comp.DefaultPrefix = item.HeldPrefix;
+    }
+
+    private void OnUpdatePrefix(EntityUid uid, ItemTogglePrefixComponent comp, ref ItemToggledEvent args)
+    {
+        var prefix = args.Activated ? comp.Prefix : comp.DefaultPrefix;
+        _item.SetHeldPrefix(uid, prefix);
     }
 }
