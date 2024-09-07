@@ -30,6 +30,10 @@
         enum.ToggleVisuals.Layer:
           True: {state: icon-on}
           False: {state: icon}
+  - type: ClothingTogglePrefix
+    prefix: on
+  - type: ItemTogglePrefix
+    prefix: on
   - type: StaticPrice
     price: 200
   - type: Tag
